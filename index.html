@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>我的课表</title>
+<style>
+body { font-family: Arial, sans-serif; padding: 10px; margin:0; background:#f9f9f9; }
+h2 { text-align: center; margin-bottom:10px; }
+.table-container { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; min-width: 900px; background:#fff; }
+th, td { border: 1px solid #999; padding: 5px; text-align: center; vertical-align: top; white-space: pre-line; }
+th { background-color: #f0f0f0; }
+select { margin-bottom: 10px; padding: 5px; width: 100%; max-width: 200px; display:block; margin-left:auto; margin-right:auto;}
+hr { margin:2px 0; border:0; border-top:1px dashed #ccc; }
+.morning { background-color: #d0ebff; }
+.afternoon { background-color: #d0ffd8; }
+.evening { background-color: #fff7c0; }
+</style>
+</head>
+<body>
+<h2>我的课表</h2>
+<label>选择周次：
+<select id="weekSelect">
+<!-- 周次选项 -->
+<script>
+for(let w=3; w<=18; w++){
+  document.write(`<option value="${w}">第${w}周</option>`);
+}
+</script>
+</select>
+</label>
+
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>节次/时间</th>
+<th>周一</th>
+<th>周二</th>
+<th>周三</th>
+<th>周四</th>
+<th>周五</th>
+<th>周六</th>
+</tr>
+</thead>
+<tbody id="timetable"></tbody>
+</table>
+</div>
+
+<script>
+// ===== 工具函数 =====
+function range(start,end){ let arr=[]; for(let i=start;i<=end;i++) arr.push(i); return arr; }
+const startDate = new Date(2025,8,15); // 第3周周一
+const periods = ["08:10-08:55","09:05-09:50","10:20-11:05","11:15-12:00",
+"14:00-14:45","14:55-15:40","16:10-16:55","17:05-17:50",
+"19:00-19:45","19:55-20:40"];
+function getWeekDates(week){
+  let monday = new Date(startDate);
+  monday.setDate(monday.getDate() + (week-3)*7);
+  let dates = [];
+  for(let i=0;i<6;i++){
+    let d = new Date(monday);
+    d.setDate(monday.getDate()+i);
+    dates.push(`${d.getMonth()+1}月${d.getDate()}日`);
+  }
+  return dates;
+}
+function getPeriodClass(idx){
+  if(idx<=3) return 'morning';
+  if(idx<=7) return 'afternoon';
+  return 'evening';
+}
+
+// ===== 课表数据 =====
+// 这里放你完整的课程数据
+const schedule = [
+  // 第1节
+  [
+    [{course:"色谱技术",class:"1班化工",teacher:"刘国良",weeks:range(3,6),room:"同和楼211"}],
+    [
+      {course:"综合英语",class:"5班化工1",teacher:"顾莉莉",weeks:range(3,12),room:"厚310"},
+      {course:"精细有机合成",class:"化工",teacher:"史海健",weeks:range(15,18),room:"厚学楼303"}
+    ],
+    [],
+    [{course:"精细有机合成",class:"化工",teacher:"史海健",weeks:range(15,18),room:"厚学楼203"}],
+    [],
+    [
+      {course:"高等仪器分析",class:"化学2班",teacher:"戴志晖",weeks:range(3,4),room:"同113"},
+      {course:"高等仪器分析",class:"化学2班",teacher:"戴志晖",weeks:range(5,10),room:"厚300"}
+    ]
+  ],
+  // 第2节
+  [
+    [{course:"色谱技术",class:"1班化工",teacher:"刘国良",weeks:range(3,6),room:"同和楼211"}],
+    [
+      {course:"综合英语",class:"5班化工1",teacher:"顾莉莉",weeks:range(3,12),room:"厚310"},
+      {course:"精细有机合成",class:"化工",teacher:"史海健",weeks:range(15,18),room:"厚学楼303"}
+    ],
+    [],
+    [{course:"精细有机合成",class:"化工",teacher:"史海健",weeks:range(15,18),room:"厚学楼203"}],
+    [],
+    [
+      {course:"高等仪器分析",class:"化学2班",teacher:"戴志晖",weeks:range(3,4),room:"同113"},
+      {course:"高等仪器分析",class:"化学2班",teacher:"戴志晖",weeks:range(5,10),room:"厚300"}
+    ]
+  ],
+  // 第3-10节课程同样按你的完整课表填入
+  [[], [], [{course:"化工系统工程",class:"1班化工",teacher:"高雪超",weeks:range(11,18),room:"同和楼511"}], [], [], []],
+  [[], [], [{course:"化工系统工程",class:"1班化工",teacher:"高雪超",weeks:range(11,18),room:"同和楼511"}], [], [], []],
+  [
+    [], 
+    [{course:"工业催化技术",class:"化工",teacher:"郭燏",weeks:range(11,18),room:"笃学B楼304"}], 
+    [{course:"工业催化技术",class:"化工",teacher:"郭燏",weeks:range(11,18),room:"仁智楼522"}],
+    [{course:"色谱技术",class:"1班化工",teacher:"刘国良",weeks:range(3,6),room:"任智楼402"}],
+    [], []
+  ],
+  [
+    [], 
+    [{course:"工业催化技术",class:"化工",teacher:"郭燏",weeks:range(11,18),room:"笃学B楼304"}], 
+    [{course:"工业催化技术",class:"化工",teacher:"郭燏",weeks:range(11,18),room:"仁智楼522"}],
+    [{course:"色谱技术",class:"1班化工",teacher:"刘国良",weeks:range(3,6),room:"任智楼402"}],
+    [], []
+  ],
+  [
+    [{course:"工程应用数学",class:"1班化工",teacher:"马正飞",weeks:range(3,8),room:"笃学B楼404"},
+     {course:"工程应用数学",class:"1班化工",teacher:"马正飞",weeks:range(9,10),room:"笃学B楼502"},
+     {course:"工程应用数学",class:"1班化工",teacher:"马正飞",weeks:range(11,18),room:"厚学楼209"}],
+    [], [], 
+    [{course:"工程应用数学",class:"1班化工",teacher:"马正飞",weeks:range(3,8),room:"笃学B楼404"},
+     {course:"工程应用数学",class:"1班化工",teacher:"马正飞",weeks:range(9,10),room:"笃学B楼502"},
+     {course:"工程应用数学",class:"1班化工",teacher:"马正飞",weeks:range(11,18),room:"厚学楼209"}],
+    [], []
+  ],
+  [
+    [{course:"工程应用数学",class:"1班化工",teacher:"马正飞",weeks:range(3,8),room:"笃学B楼404"},
+     {course:"工程应用数学",class:"1班化工",teacher:"马正飞",weeks:range(9,10),room:"笃学B楼502"},
+     {course:"工程应用数学",class:"1班化工",teacher:"马正飞",weeks:range(11,18),room:"厚学楼209"}],
+    [], [], 
+    [{course:"工程应用数学",class:"1班化工",teacher:"马正飞",weeks:range(3,8),room:"笃学B楼404"},
+     {course:"工程应用数学",class:"1班化工",teacher:"马正飞",weeks:range(9,10),room:"笃学B楼502"},
+     {course:"工程应用数学",class:"1班化工",teacher:"马正飞",weeks:range(11,18),room:"厚学楼209"}],
+    [], []
+  ],
+  [[], [], [{course:"自然辩证法概论",class:"7班化工3",teacher:"滕飞",weeks:range(9,14),room:"同309"}], [], [], []],
+  [[], [], [{course:"自然辩证法概论",class:"7班化工3",teacher:"滕飞",weeks:range(9,14),room:"同309"}], [], [], []]
+];
+
+function renderTable(week){
+  const tbody = document.getElementById("timetable");
+  tbody.innerHTML = "";
+  const dates = getWeekDates(week);
+  const ths = document.querySelectorAll('table thead th');
+  for(let i=1;i<7;i++) ths[i].innerText = `周${["一","二","三","四","五","六"][i-1]}\n${dates[i-1]}`;
+
+  for(let i=0;i<10;i++){
+    let tr = `<tr class="${getPeriodClass(i)}"><td>${i+1}节<br>${periods[i]}</td>`;
+    for(let d=0;d<6;d++){
+      let cell = "";
+      if(schedule[i] && schedule[i][d]){
+        let courses = schedule[i][d].filter(c=>c.weeks.includes(Number(week)));
+        cell = courses.map(c=>`${periods[i]}<br>${c.course}<br>${c.class}<br>${c.teacher}<br>${c.room}`).join("<hr>");
+      }
+      tr += `<td>${cell}</td>`;
+    }
+    tr += "</tr>";
+    tbody.innerHTML += tr;
+  }
+}
+
+document.getElementById("weekSelect").addEventListener("change", e=>renderTable(e.target.value));
+renderTable(document.getElementById("weekSelect").value);
+</script>
+</body>
+</html>
